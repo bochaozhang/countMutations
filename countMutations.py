@@ -47,5 +47,22 @@ def findMutations( seqList ):
             unique_count[unique_mutations.index(mutation)] += 1
     return unique_mutations, unique_count
             
+def divideMutation( unique_mutations,unique_count ):
+    "devide mutations into single mutation (one mutation in a codon) and multiple mutation (more than one mutations in a codon)"
+    from itertools import izip
 
+    single_mutations = []
+    single_count = []
+    multiple_mutations = []
+    multiple_count = []
+    
+    for mutation in unique_mutations:
+        if sum(c1 != c2 for c1,c2 in izip(mutation[0],mutation[2])) == 1:
+            single_mutations.append(mutation)
+            single_count = unique_count[unique_mutations.index(mutation)]
+        else:
+            multiple_mutations.append(mutation)
+            multiple_count = unique_count[unique_mutations.index(mutation)]
+
+    return single_mutations, single_count, multiple_mutations, multiple_count 
         
