@@ -84,7 +84,25 @@ def groupMultipleMutation( multiple_mutations ):
     return multiple_group
 
 
-def applyBias( multiple_mutations,multiple_count,multiple_group,bias ):
+def mutationType(single_mutations):
+    "Find mutations type (R/S) for single mutation"
+    from Bio import Seq
+    
+    for i in range(len(single_mutations)):
+        germline = single_mutations[i][0]
+        mutated = single_mutations[i][2]
+        if '-' not in germline and '-' not in mutated:
+            if Seq.translate(germline) == Seq.translate(mutated):
+                single_mutations[i].append('silent')
+            else:
+                single_mutations[i].append('replacement')
+        else:
+            sinlge_mutations[i].append('unknown')
+
+        return sinlge_mutations
+
+
+def applyBias( multiple_mutations,multiple_group,bias ):
     ""
     from itertools import permutations
     from Bio import Seq
