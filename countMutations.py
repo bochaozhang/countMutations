@@ -103,7 +103,7 @@ def mutationType(single_mutations):
 
 
 def applyBias( multiple_mutations,multiple_group,bias ):
-    ""
+    "Determine types for multi mutations using pre-set bias"
     from itertools import permutations
     from Bio import Seq
     from collections import Counter
@@ -120,7 +120,7 @@ def applyBias( multiple_mutations,multiple_group,bias ):
                 germline = mutation[0]
                 for j in range(len(p[i])):
                     mutated = germline[:p[i][j]] + mutation[2][p[i][j]] + germline[p[i][j]+1:]
-                    if 'N' not in germline and 'N' not in mutated:
+                    if '-' not in germline and '-' not in mutated:
                         if Seq.translate(germline) == Seq.translate(mutated):
                             types.append('silent')
                         else:
