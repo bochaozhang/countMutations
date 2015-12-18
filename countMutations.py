@@ -1,3 +1,10 @@
+import sys
+
+inFileName = sys.argv[1]
+outFileName = sys.argv[2]
+bias = sys.argv[3]
+
+
 def readFasta( inFileName ):
     "Read fasta files"
     from Bio import SeqIO
@@ -59,10 +66,10 @@ def divideMutation( unique_mutations,unique_count ):
     for mutation in unique_mutations:
         if sum(c1 != c2 for c1,c2 in izip(mutation[0],mutation[2])) == 1:
             single_mutations.append(mutation)
-            single_count = unique_count[unique_mutations.index(mutation)]
+            single_count.append(unique_count[unique_mutations.index(mutation)])
         else:
             multiple_mutations.append(mutation)
-            multiple_count = unique_count[unique_mutations.index(mutation)]
+            multiple_count.append(unique_count[unique_mutations.index(mutation)])
 
     return single_mutations, single_count, multiple_mutations, multiple_count 
        
@@ -88,18 +95,19 @@ def mutationType(single_mutations):
     "Find mutations type (R/S) for single mutation"
     from Bio import Seq
     
+    print len(single_mutations)
     for i in range(len(single_mutations)):
         germline = single_mutations[i][0]
         mutated = single_mutations[i][2]
-        if '-' not in germline and '-' not in mutated:
+        if '-' not in germline and 'N' not in germline and '-' not in mutated and 'N' not in mutated:
             if Seq.translate(germline) == Seq.translate(mutated):
                 single_mutations[i].append('silent')
             else:
                 single_mutations[i].append('replacement')
         else:
-            sinlge_mutations[i].append('unknown')
+            single_mutations[i].append('unknown')
 
-        return sinlge_mutations
+    return single_mutations
 
 
 def applyBias( multiple_mutations,multiple_group,bias ):
@@ -120,7 +128,7 @@ def applyBias( multiple_mutations,multiple_group,bias ):
                 germline = mutation[0]
                 for j in range(len(p[i])):
                     mutated = germline[:p[i][j]] + mutation[2][p[i][j]] + germline[p[i][j]+1:]
-                    if '-' not in germline and '-' not in mutated:
+                    if '-' not in germline and 'N' not in germline and '-' not in mutated and 'N' not in mutated:
                         if Seq.translate(germline) == Seq.translate(mutated):
                             types.append('silent')
                         else:
@@ -138,4 +146,25 @@ def applyBias( multiple_mutations,multiple_group,bias ):
                 counted[idx] = 1
                 multiple_mutations[idx].append(type_list[indices.index(idx)])
     return multiple_mutations          
-            
+
+
+def outputMutations( outFileName,single_mutations,single_count,multiple_mutations,multiple_count ):
+    fo = open(outFileName,'w')
+    fo.write('Germline,Position,Mutated,Type,Frequency\n')
+    for i in range(len(single_mutations)):
+        s = single_mutations[i][0] + ',' + single_mutations[i][1] + ',' + single_mutations[i][2] + ',' + single_mutations[i][3] + ',' + str(single_count[i]) + '\n'
+        fo.write(s)
+    for i in range(len(multiple_mutations)):
+        s = multiple_mutations[i][0] + ',' + multiple_mutations[i][1] + ',' + multiple_mutations[i][2] + ',' + multiple_mutations[i][3] + ',' + str(multiple_count[i]) + '\n'
+        fo.write(s)
+    fo.close()
+         
+
+if __name__ == '__main__':
+    headerList,seqList = readFasta(inFileName)
+    unique_mutations,unique_count = findMutations(seqList)
+    single_mutations,single_count,multiple_mutations,multiple_count = divideMutation(unique_mutations,unique_count)
+    single_mutations = mutationType(single_mutations)
+    multiple_group = groupMultipleMutation(multiple_mutations)
+    multiple_mutations = applyBias(multiple_mutations,multiple_group,bias)
+    outputMutations(outFileName,single_mutations,single_count,multiple_mutations,multiple_count)
