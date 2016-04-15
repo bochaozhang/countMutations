@@ -16,7 +16,7 @@ def readFasta( inFileName ):
     fasta_sequences = SeqIO.parse(open(inFileName),'fasta')
     for each_sequence in fasta_sequences:
         headerList.append(each_sequence.id)
-        seqList.append(str(each_sequence.seq))
+        seqList.append(str(each_sequence.seq + 'NN'))
     return headerList, seqList
 
 def findMutations( seqList ):
